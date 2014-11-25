@@ -2,8 +2,9 @@ package com.alltheducks.configutils.service;
 
 
 /**
- * Used for loading and persisting configuration.
- * Created by Wiley Fuller on 19/11/2014.
+ * <p>This is the base interface for classes that load and persist configuration.</p>
+ * <p>Copyright All the Ducks Pty Ltd. 2014.</p>
+ *
  */
 public interface ConfigurationService<C> {
 

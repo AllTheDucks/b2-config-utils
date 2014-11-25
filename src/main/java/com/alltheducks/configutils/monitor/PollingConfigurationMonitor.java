@@ -7,7 +7,13 @@ import java.util.List;
 
 
 /**
- * Created by Shane Argo on 18/09/2014.
+ * <p>Monitors a configuration file for changes.</p>
+ * <p>The PollingConfigurationMonitor runs on a background thread and monitors
+ * a configuration file for changes.  When changes are detected, it reloads
+ * the configuration locally, and calls {@link com.alltheducks.configutils.monitor.ConfigurationChangeListener#configurationChanged(Object)}
+ * on each registered listener.</p>
+ * @see com.alltheducks.configutils.monitor.ConfigurationChangeListener
+ * <p>Copyright All the Ducks Pty Ltd. 2014.</p>
  */
 public class PollingConfigurationMonitor implements Runnable {
 

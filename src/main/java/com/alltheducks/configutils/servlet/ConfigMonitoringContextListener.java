@@ -1,6 +1,8 @@
-package com.alltheducks.configutils.monitor;
+package com.alltheducks.configutils.servlet;
 
 import com.alltheducks.configutils.exception.ConfigurationMonitorInitialisationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -10,19 +12,31 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * This Class is responsible for Executing the Configuration Monitor process.
- * It gets the instance of the configurationMonitor from the spring context,
- * and expects it to have the ID "configurationMonitor".
+ *<p>
+ * This is the base class that all ConfigMonitoringContextListener implementations
+ * extend. Responsible for Executing the Configuration Monitor process.<br>
+ * Override the {@link #getConfigurationMonitor} method to return the
+ * Configuration Monitor that should be used.</p>
+ * <p>You configure the Listener in your web.xml as follows.</p>
+ * <pre>
+ * {@code
+ * <listener>
+ *  <listener-class>
+ *     my.package.MyConfigMonitoringContextListener
+ *  </listener-class>
+ *</listener>}
+ *</pre>
  *
- * @author Shane Argo
+ * <p>Copyright All the Ducks Pty Ltd. 2014.</p>
  */
 public abstract class ConfigMonitoringContextListener implements ServletContextListener {
 
     ExecutorService executorService;
+    final Logger logger = LoggerFactory.getLogger(ConfigMonitoringContextListener.class);
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        System.out.println("Initialising configuration monitor.");
+        logger.info("Initialising configuration monitor.");
 
         Runnable configurationMonitor = getConfigurationMonitor(sce.getServletContext());
 
@@ -32,7 +46,7 @@ public abstract class ConfigMonitoringContextListener implements ServletContextL
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        System.out.println("Destroying configuration monitor.");
+        logger.info("Destroying configuration monitor.");
 
         if(executorService != null) {
             executorService.shutdownNow();
@@ -41,11 +55,11 @@ public abstract class ConfigMonitoringContextListener implements ServletContextL
             try {
                 terminated = executorService.awaitTermination(5, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
-                throw new RuntimeException("Interruption whilst terminating configuration monitor");
+                throw new ConfigurationMonitorInitialisationException("Interruption whilst terminating configuration monitor");
             }
 
             if (!terminated) {
-                throw new RuntimeException("Configuration monitor did not terminate within the timeout.");
+                throw new ConfigurationMonitorInitialisationException("Configuration monitor did not terminate within the timeout.");
             }
         }
     }

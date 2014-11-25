@@ -14,6 +14,8 @@ import java.util.logging.Logger;
 /**
  * Loads and persists the configuration from and into an XML file in Blackboard's shared content.
  * Created by Shane Argo on 23/05/14.
+ *
+ * <p>Copyright All the Ducks Pty Ltd. 2014.</p>
  */
 public class XmlConfigurationService<C> implements ConfigurationService<C> {
 

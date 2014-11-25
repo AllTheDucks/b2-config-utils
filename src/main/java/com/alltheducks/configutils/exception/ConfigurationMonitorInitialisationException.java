@@ -1,7 +1,9 @@
 package com.alltheducks.configutils.exception;
 
 /**
- * Created by Shane Argo on 24/11/14.
+ * <p>Exception thrown when initialising a Configuration Monitor
+ * within a {@link com.alltheducks.configutils.servlet.ConfigMonitoringContextListener}</p>
+ * <p>Copyright All the Ducks Pty Ltd. 2014.</p>
  */
 public class ConfigurationMonitorInitialisationException extends RuntimeException {
 

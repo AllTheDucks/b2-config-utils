@@ -2,19 +2,19 @@ package com.alltheducks.configutils.service;
 
 
 /**
- * Adds a caching layer on top of an existing ConfigurationService.
+ * <p>Adds a caching layer on top of an existing ConfigurationService.</p>
  *
- * When loading configuration it defers the call to the ConfigurationService passed into the constructor then internally
+ * <p>When loading configuration it defers the call to the ConfigurationService passed into the constructor then internally
  * caches the result. Next time the an attempt to load the configuration is made, it is read directly from memory,
- * instead of deferring to the other ConfigurationService.
+ * instead of deferring to the other ConfigurationService.</p>
  *
- * When persisting configuration, it is deferred to the ConfigurationService passed into the constructor and then the
- * cache is updated.
+ * <p>When persisting configuration, it is deferred to the ConfigurationService passed into the constructor and then the
+ * cache is updated.</p>
  *
- * Warning: caching is local to the object; another instance of this class will not have its cache updated when
- * persisting.
- *
- * Created by Shane Argo on 23/05/14.
+ * <p><strong>Warning:</strong> caching is local to the object; another instance of this class will not have its cache updated when
+ * persisting.</p>
+ * @see com.alltheducks.configutils.monitor.PollingConfigurationMonitor
+ * <p>Copyright All the Ducks Pty Ltd. 2014.</p>
  */
 public class CachingConfigurationService<C> implements ReloadableConfigurationService<C> {
 
