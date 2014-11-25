@@ -1,6 +1,8 @@
 package com.alltheducks.configutils;
 
 import static org.junit.Assert.*;
+
+import com.alltheducks.configutils.service.XmlConfigurationService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -23,6 +25,8 @@ public class XmlConfigurationServiceTest {
         }
         configService = new XmlConfigurationService<MyConfig>();
 
+        // Work around for inner classes.
+        configService.getXStream().omitField(MyConfig.class, "this$0");
     }
 
     @Test

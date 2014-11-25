@@ -1,11 +1,10 @@
-package com.alltheducks.configutils;
+package com.alltheducks.configutils.monitor;
 
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
+import com.alltheducks.configutils.exception.ConfigurationMonitorInitialisationException;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -17,9 +16,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Shane Argo
  */
-public class ConfigMonitoringContextListener implements ServletContextListener {
-
-    private Runnable configurationMonitor;
+public abstract class ConfigMonitoringContextListener implements ServletContextListener {
 
     ExecutorService executorService;
 
@@ -27,8 +24,7 @@ public class ConfigMonitoringContextListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         System.out.println("Initialising configuration monitor.");
 
-        final WebApplicationContext springContext = WebApplicationContextUtils.getWebApplicationContext(sce.getServletContext());
-        configurationMonitor = (Runnable)springContext.getBean("configurationMonitor");
+        Runnable configurationMonitor = getConfigurationMonitor(sce.getServletContext());
 
         executorService = Executors.newSingleThreadExecutor();
         executorService.submit(configurationMonitor);
@@ -53,4 +49,7 @@ public class ConfigMonitoringContextListener implements ServletContextListener {
             }
         }
     }
+
+    public abstract Runnable getConfigurationMonitor(ServletContext servletContext) throws ConfigurationMonitorInitialisationException;
+
 }

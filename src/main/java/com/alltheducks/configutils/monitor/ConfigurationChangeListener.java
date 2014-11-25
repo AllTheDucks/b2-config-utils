@@ -1,4 +1,4 @@
-package com.alltheducks.configutils;
+package com.alltheducks.configutils.monitor;
 
 /**
  * Created by wiley on 19/11/14.

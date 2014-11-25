@@ -1,4 +1,4 @@
-package com.alltheducks.configutils;
+package com.alltheducks.configutils.service;
 
 
 /**
