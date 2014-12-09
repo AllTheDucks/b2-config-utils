@@ -1,6 +1,8 @@
 package com.alltheducks.configutils.servlet;
 
 import com.alltheducks.configutils.exception.ConfigurationMonitorInitialisationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -74,6 +76,7 @@ import javax.servlet.ServletContext;
  *
  */
 public class SpringBeanConfigMonitoringContextListener extends ConfigMonitoringContextListener {
+    final Logger logger = LoggerFactory.getLogger(SpringBeanConfigMonitoringContextListener.class);
 
     public static final String BEAN_PARAM_NAME = "ConfigurationMonitor.Bean";
     public static final String BEAN_NAME_DEFAULT = "configurationMonitor";
@@ -86,6 +89,7 @@ public class SpringBeanConfigMonitoringContextListener extends ConfigMonitoringC
             beanName = BEAN_NAME_DEFAULT;
         }
 
+        logger.debug("Creating SpringBeanConfigMonitoringContextListener with ConfigurationMonitor bean: {}", beanName);
         final WebApplicationContext springContext = WebApplicationContextUtils.getWebApplicationContext(servletContext);
         return (Runnable)springContext.getBean(beanName);
     }

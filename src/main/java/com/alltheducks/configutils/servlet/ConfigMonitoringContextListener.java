@@ -30,9 +30,11 @@ import java.util.concurrent.TimeUnit;
  * <p>Copyright All the Ducks Pty Ltd. 2014.</p>
  */
 public abstract class ConfigMonitoringContextListener implements ServletContextListener {
+    final Logger logger = LoggerFactory.getLogger(ConfigMonitoringContextListener.class);
 
     ExecutorService executorService;
-    final Logger logger = LoggerFactory.getLogger(ConfigMonitoringContextListener.class);
+
+    public static final int TERMINATION_TIMEOUT_SECONDS = 5;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -53,13 +55,13 @@ public abstract class ConfigMonitoringContextListener implements ServletContextL
 
             boolean terminated;
             try {
-                terminated = executorService.awaitTermination(5, TimeUnit.SECONDS);
+                terminated = executorService.awaitTermination(TERMINATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 throw new ConfigurationMonitorInitialisationException("Interruption whilst terminating configuration monitor");
             }
 
             if (!terminated) {
-                throw new ConfigurationMonitorInitialisationException("Configuration monitor did not terminate within the timeout.");
+                throw new ConfigurationMonitorInitialisationException(String.format("Configuration monitor did not terminate within the timeout (%s seconds).", TERMINATION_TIMEOUT_SECONDS));
             }
         }
     }
