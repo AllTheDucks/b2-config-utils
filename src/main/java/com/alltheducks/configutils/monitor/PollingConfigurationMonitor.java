@@ -20,20 +20,20 @@ public class PollingConfigurationMonitor implements Runnable {
     private final ReloadableConfigurationService configurationService;
     private final List<ConfigurationChangeListener> listeners;
     private File configurationFile;
-    private int pollFreq;
+    private int pollFreqSeconds;
 
     private long lastReload = 0;
 
-    public PollingConfigurationMonitor(int pollFreq, File configurationFile,
+    public PollingConfigurationMonitor(int pollFreqSeconds, File configurationFile,
                                        ReloadableConfigurationService configurationService) {
-        this(pollFreq, configurationFile, configurationService, null);
+        this(pollFreqSeconds, configurationFile, configurationService, null);
     }
 
-    public PollingConfigurationMonitor(int pollFreq, File configurationFile,
+    public PollingConfigurationMonitor(int pollFreqSeconds, File configurationFile,
                                        ReloadableConfigurationService configurationService,
                                        List<ConfigurationChangeListener> listeners) {
         this.configurationFile = configurationFile;
-        this.pollFreq = pollFreq;
+        this.pollFreqSeconds = pollFreqSeconds;
         this.configurationService = configurationService;
         this.listeners = listeners;
     }
@@ -52,7 +52,7 @@ public class PollingConfigurationMonitor implements Runnable {
                 }
             }
             try {
-                Thread.sleep(pollFreq);
+                Thread.sleep(pollFreqSeconds * 1000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
