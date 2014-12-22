@@ -55,7 +55,7 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
         }
 
         try {
-            configuration = (C) xstream.fromXML(inputStream);
+            configuration = decodeXmlIS(inputStream, xstream);
         } catch(XStreamException ex) {
             Logger.getLogger(XmlConfigurationService.class.getName()).log(Level.SEVERE, "Failed to decode XStream", ex);
         } finally {
@@ -85,6 +85,11 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
             }
         }
         return configuration;
+    }
+
+    @SuppressWarnings("unchecked")
+    private C decodeXmlIS(InputStream inputStream, XStream xstream) {
+        return (C) xstream.fromXML(inputStream);
     }
 
 

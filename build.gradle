@@ -18,7 +18,7 @@ repositories {
     mavenCentral()
 }
 
-version="1.0.1"
+version="1.0.2"
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
@@ -37,4 +37,13 @@ dependencies {
     // testCompile dependency to testCompile 'org.testng:testng:6.8.1' and add
     // 'test.useTestNG()' to your build script.
     testCompile "junit:junit:4.11"
+}
+
+// Java linting
+allprojects {
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        }
+    }
 }

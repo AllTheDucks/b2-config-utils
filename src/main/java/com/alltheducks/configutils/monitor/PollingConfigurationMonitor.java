@@ -44,11 +44,12 @@ public class PollingConfigurationMonitor implements Runnable {
             if (configurationFile.lastModified() > lastReload) {
                 configurationService.reload();
                 lastReload = configurationFile.lastModified();
-            }
-            Object config = configurationService.loadConfiguration();
-            if (listeners != null) {
-                for (ConfigurationChangeListener listener : listeners) {
-                    listener.configurationChanged(config);
+
+                Object config = configurationService.loadConfiguration();
+                if (listeners != null) {
+                    for (ConfigurationChangeListener listener : listeners) {
+                        callListener(config, listener);
+                    }
                 }
             }
             try {
@@ -58,6 +59,11 @@ public class PollingConfigurationMonitor implements Runnable {
                 break;
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void callListener(Object config, ConfigurationChangeListener listener) {
+        listener.configurationChanged(config);
     }
 
 

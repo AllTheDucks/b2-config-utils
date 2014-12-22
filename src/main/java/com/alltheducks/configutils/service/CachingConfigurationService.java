@@ -25,7 +25,7 @@ public class CachingConfigurationService<C> implements ReloadableConfigurationSe
      * @param internalConfigurationService The ConfigurationService used to do the actual loading and persisting of
      *                                     configuration.
      */
-    public CachingConfigurationService(ConfigurationService internalConfigurationService) {
+    public CachingConfigurationService(ConfigurationService<C> internalConfigurationService) {
         internalConfigService = internalConfigurationService;
     }
 
