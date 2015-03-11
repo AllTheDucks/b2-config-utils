@@ -9,8 +9,8 @@ import org.junit.Test;
 import java.io.File;
 
 /**
- * Created by wiley on 19/11/14.
- */
+* Created by wiley on 19/11/14.
+*/
 public class XmlConfigurationServiceTest {
 
     XmlConfigurationService<MyConfig> configService;

@@ -25,32 +25,31 @@ public class PollingConfigurationMonitor implements Runnable {
     private final ReloadableConfigurationService configurationService;
     private final List<ConfigurationChangeListener> listeners;
     private File configurationFile;
-    private int pollFreq;
+    private int pollFreqSeconds;
 
     private long lastReload = 0;
 
-    public PollingConfigurationMonitor(int pollFreq, File configurationFile,
+    public PollingConfigurationMonitor(int pollFreqSeconds, File configurationFile,
                                        ReloadableConfigurationService configurationService) {
-        this(pollFreq, configurationFile, configurationService, null);
+        this(pollFreqSeconds, configurationFile, configurationService, null);
     }
 
-    public PollingConfigurationMonitor(int pollFreq, File configurationFile,
+    public PollingConfigurationMonitor(int pollFreqSeconds, File configurationFile,
                                        ReloadableConfigurationService configurationService,
                                        List<ConfigurationChangeListener> listeners) {
         logger.debug("Initialising PollingConfigurationMonitor (Polling freq: {}, Config file: {}, Config service: {}, Listeners: {})",
-                pollFreq,
+                pollFreqSeconds,
                 (configurationFile == null ? "null" : configurationFile.getName()),
                 (configurationService == null ? "null" : configurationService.getClass().getName()),
                 (listeners == null ? "null" : listeners.size()));
 
         this.configurationFile = configurationFile;
-        this.pollFreq = pollFreq;
+        this.pollFreqSeconds = pollFreqSeconds;
         this.configurationService = configurationService;
         this.listeners = listeners;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void run() {
         logger.debug("Started polling for configuration file changes...");
         while (!Thread.currentThread().isInterrupted()) {
@@ -64,20 +63,25 @@ public class PollingConfigurationMonitor implements Runnable {
                 if (listeners != null) {
                     logger.debug("PollingConfigurationMonitor has {} listeners. Notifying the listeners now.", listeners.size());
                     for (ConfigurationChangeListener listener : listeners) {
-                        logger.debug("Calling configurationChanged on listener: {}", listener.getClass().getName());
-                        listener.configurationChanged(config);
+                        callListener(config, listener);
                     }
                 }
             }
 
             try {
-                Thread.sleep(pollFreq);
+                Thread.sleep(pollFreqSeconds * 1000);
             } catch (InterruptedException e) {
                 logger.debug("PollingConfigurationMonitor thread has been interrupted. Shutting down.");
                 Thread.currentThread().interrupt();
                 break;
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void callListener(Object config, ConfigurationChangeListener listener) {
+        logger.debug("Calling configurationChanged on listener: {}", listener.getClass().getName());
+        listener.configurationChanged(config);
     }
 
 

@@ -64,7 +64,7 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
 
             try (InputStream inputStream = new FileInputStream(configurationXmlFile)) {
                 logger.debug("Loading configuration from XML file");
-                configuration = (C) xStream.fromXML(inputStream);
+                configuration = decodeXmlIS(inputStream, xStream);
             } catch (IOException ex) {
                 logger.error("Unexpected IOException while loading XML", ex);
                 throw new RuntimeException(ex);
@@ -103,6 +103,11 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
             writeLock.unlock();
         }
 
+    }
+
+    @SuppressWarnings("unchecked")
+    private C decodeXmlIS(InputStream inputStream, XStream xstream) {
+        return (C) xstream.fromXML(inputStream);
     }
 
 }
