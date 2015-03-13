@@ -1,6 +1,8 @@
 package com.alltheducks.configutils.monitor;
 
 import com.alltheducks.configutils.service.ReloadableConfigurationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
@@ -12,10 +14,13 @@ import java.util.List;
  * a configuration file for changes.  When changes are detected, it reloads
  * the configuration locally, and calls {@link com.alltheducks.configutils.monitor.ConfigurationChangeListener#configurationChanged(Object)}
  * on each registered listener.</p>
+ *
  * @see com.alltheducks.configutils.monitor.ConfigurationChangeListener
  * <p>Copyright All the Ducks Pty Ltd. 2014.</p>
  */
 public class PollingConfigurationMonitor implements Runnable {
+
+    final Logger logger = LoggerFactory.getLogger(PollingConfigurationMonitor.class);
 
     private final ReloadableConfigurationService configurationService;
     private final List<ConfigurationChangeListener> listeners;
@@ -32,6 +37,12 @@ public class PollingConfigurationMonitor implements Runnable {
     public PollingConfigurationMonitor(int pollFreqSeconds, File configurationFile,
                                        ReloadableConfigurationService configurationService,
                                        List<ConfigurationChangeListener> listeners) {
+        logger.debug("Initialising PollingConfigurationMonitor (Polling freq: {}, Config file: {}, Config service: {}, Listeners: {})",
+                pollFreqSeconds,
+                (configurationFile == null ? "null" : configurationFile.getName()),
+                (configurationService == null ? "null" : configurationService.getClass().getName()),
+                (listeners == null ? "null" : listeners.size()));
+
         this.configurationFile = configurationFile;
         this.pollFreqSeconds = pollFreqSeconds;
         this.configurationService = configurationService;
@@ -40,21 +51,27 @@ public class PollingConfigurationMonitor implements Runnable {
 
     @Override
     public void run() {
+        logger.debug("Started polling for configuration file changes...");
         while (!Thread.currentThread().isInterrupted()) {
+            logger.trace("Polling for changes to the config file.");
             if (configurationFile.lastModified() > lastReload) {
+                logger.debug("Configuration file modified.  Reloading.");
                 configurationService.reload();
                 lastReload = configurationFile.lastModified();
 
                 Object config = configurationService.loadConfiguration();
                 if (listeners != null) {
+                    logger.debug("PollingConfigurationMonitor has {} listeners. Notifying the listeners now.", listeners.size());
                     for (ConfigurationChangeListener listener : listeners) {
                         callListener(config, listener);
                     }
                 }
             }
+
             try {
                 Thread.sleep(pollFreqSeconds * 1000);
             } catch (InterruptedException e) {
+                logger.debug("PollingConfigurationMonitor thread has been interrupted. Shutting down.");
                 Thread.currentThread().interrupt();
                 break;
             }
@@ -63,6 +80,7 @@ public class PollingConfigurationMonitor implements Runnable {
 
     @SuppressWarnings("unchecked")
     private void callListener(Object config, ConfigurationChangeListener listener) {
+        logger.debug("Calling configurationChanged on listener: {}", listener.getClass().getName());
         listener.configurationChanged(config);
     }
 

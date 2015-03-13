@@ -18,14 +18,14 @@ repositories {
     mavenCentral()
 }
 
-version="1.0.2"
+version="1.0.3"
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
     // The production code uses the SLF4J logging API at compile time
     compile 'org.slf4j:slf4j-api:1.7.5'
 
-    compile 'com.thoughtworks.xstream:xstream:1.4.4'
+    compile 'com.thoughtworks.xstream:xstream:1.4.7'
     compile 'javax.servlet:servlet-api:2.5'
     compile 'org.springframework:spring-beans:4.1.2.RELEASE'
     compile 'org.springframework:spring-web:4.1.2.RELEASE'

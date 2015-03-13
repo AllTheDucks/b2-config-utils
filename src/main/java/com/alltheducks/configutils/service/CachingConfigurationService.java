@@ -1,6 +1,9 @@
 package com.alltheducks.configutils.service;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * <p>Adds a caching layer on top of an existing ConfigurationService.</p>
  *
@@ -17,16 +20,18 @@ package com.alltheducks.configutils.service;
  * <p>Copyright All the Ducks Pty Ltd. 2014.</p>
  */
 public class CachingConfigurationService<C> implements ReloadableConfigurationService<C> {
+    final Logger logger = LoggerFactory.getLogger(CachingConfigurationService.class);
 
     public C configurationCache = null;
-    public ConfigurationService<C> internalConfigService = null;
+    public ConfigurationService<C> internalConfigurationService = null;
 
     /**
      * @param internalConfigurationService The ConfigurationService used to do the actual loading and persisting of
      *                                     configuration.
      */
     public CachingConfigurationService(ConfigurationService<C> internalConfigurationService) {
-        internalConfigService = internalConfigurationService;
+        logger.debug("Initialising CachingConfigurationService with internal configuration service of type {}.", internalConfigurationService.getClass().getName());
+        this.internalConfigurationService = internalConfigurationService;
     }
 
     /**
@@ -36,12 +41,13 @@ public class CachingConfigurationService<C> implements ReloadableConfigurationSe
      */
     @Override
     public C loadConfiguration() {
+        logger.trace("Entering loadConfiguration on CachingConfigurationService");
         if (configurationCache == null) {
             synchronized (this) {
                 if (configurationCache == null) {
-                    configurationCache = internalConfigService.loadConfiguration();
+                    configurationCache = internalConfigurationService.loadConfiguration();
+                    logger.debug("Configuration loaded from internal ConfigurationService ({}).", internalConfigurationService.getClass().getName());
                 }
-
             }
         }
         return configurationCache;
@@ -53,14 +59,16 @@ public class CachingConfigurationService<C> implements ReloadableConfigurationSe
      */
     @Override
     public void persistConfiguration(C configuration) {
-        internalConfigService.persistConfiguration(configuration);
+        logger.trace("Entering persistConfiguration on CachingConfigurationService");
+        internalConfigurationService.persistConfiguration(configuration);
         configurationCache = configuration;
     }
 
 
     @Override
     public void reload() {
-        C config = internalConfigService.loadConfiguration();
+        logger.trace("Entering reload on CachingConfigurationService");
+        C config = internalConfigurationService.loadConfiguration();
         configurationCache = config;
     }
 
