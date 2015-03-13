@@ -110,9 +110,5 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
 
     }
 
-    @SuppressWarnings("unchecked")
-    private C decodeXmlIS(InputStream inputStream, XStream xstream) {
-        return (C) xstream.fromXML(inputStream);
-    }
 
 }
