@@ -76,6 +76,11 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
         return configuration;
     }
 
+    @SuppressWarnings("unchecked")
+    private C decodeXmlIS(InputStream inputStream, XStream xstream) {
+        return (C) xstream.fromXML(inputStream);
+    }
+
 
     /**
      * Persists the configuration into the central configuration file on Blackboard's shared content.
