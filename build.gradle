@@ -39,6 +39,7 @@ dependencies {
     testCompile "junit:junit:4.11"
 }
 
+// Java linting
 allprojects {
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
