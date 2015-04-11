@@ -1,4 +1,4 @@
-# Blacboard Building Block Config Utilities Library #
+# Blackboard Building Block Config Utilities Library #
 This is a collection of classes designed to make loading and saving configuration settings easier in Building Blocks.
 
 The classes in this library load and persist the configuration to and from an XML file. For effeciency the configuration 
