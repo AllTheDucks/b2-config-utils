@@ -36,9 +36,10 @@ On Linux/Mac:
 
 ## Using this library ##
 1. Add the JAR as a dependency in your project. The steps to do this will vary depending upon your build tool.
-2. Configure servlet context listener in web.xml.
-3. Create a POJO for loading and persisting your configuration.
-4. Persist and load with ConfigurationService.
+2. Add XStream (at least version 1.4.7) and SLF4J as dependencies.
+3. Configure servlet context listener in web.xml.
+4. Create a POJO for loading and persisting your configuration.
+5. Persist and load with ConfigurationService.
 
 
 
