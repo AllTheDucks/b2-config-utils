@@ -55,8 +55,8 @@ Dependency Injection, the library provides an implementation of the servlet cont
 
 ````xml
 <bean id="configurationDirectory" class="blackboard.platform.plugin.PlugInUtil" factory-method="getConfigDirectory">
-    <constructor-arg name="vid" ref="me" />
-    <constructor-arg name="handle" ref="myb2" />
+    <constructor-arg name="vid" value="me" />
+    <constructor-arg name="handle" value="myb2" />
 </bean>
 <bean id="configurationXMLFile" class="java.io.File">
     <constructor-arg index="0" value="config.xml" />
