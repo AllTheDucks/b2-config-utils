@@ -58,7 +58,7 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
         readLock.lock();
         try {
             if (!configurationXmlFile.exists()) {
-                logger.warn("XML configuration file doesn't exist: %s", configurationXmlFile.getAbsolutePath());
+                logger.warn("XML configuration file doesn't exist: {}", configurationXmlFile.getAbsolutePath());
                 return null;
             }
 
@@ -103,7 +103,7 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
 
         } catch (IOException ex) {
             logger.error("Unexpected IOException while persisting XML", ex);
-            throw new RuntimeException(String.format("Failed to open configuration file for writing: {}", configurationXmlFile.getAbsolutePath()), ex);
+            throw new RuntimeException(String.format("Failed to open configuration file for writing: %s", configurationXmlFile.getAbsolutePath()), ex);
         } finally {
             writeLock.unlock();
         }
