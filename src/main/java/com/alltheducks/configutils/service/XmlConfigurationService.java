@@ -123,9 +123,9 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
 
     @SuppressWarnings("unchecked")
     private C decodeXmlIS(InputStream inputStream, XStream xstream, C root) {
-        C configuration = (C) xstream.fromXML(inputStream, root);
+        Object configuration = xstream.fromXML(inputStream, root);
         checkType(configuration);
-        return configuration;
+        return (C)configuration;
     }
 
 
@@ -159,8 +159,8 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
 
     }
 
-    private void checkType(C configuration) {
-        if(configClass != null && !configuration.getClass().isInstance(configClass)) {
+    private void checkType(Object configuration) {
+        if(configClass != null && !configClass.isInstance(configuration)) {
             logger.error("Configuration class is not the expected type.");
             throw new RuntimeException("Configuration class is not the expected type.");
         }
