@@ -25,25 +25,43 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
     private File configurationXmlFile;
     private String defaultConfigFileClasspathLocation;
     private XStream xStream;
+    private Class<C> configClass;
 
     private ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     public XmlConfigurationService(File configurationXmlFile) {
-        this(configurationXmlFile, null, null);
+        this(null, configurationXmlFile, null, null);
     }
 
     public XmlConfigurationService(File configurationXmlFile, String defaultConfigFileClasspathLocation) {
-        this(configurationXmlFile, defaultConfigFileClasspathLocation, null);
+        this(null, configurationXmlFile, defaultConfigFileClasspathLocation, null);
     }
 
     public XmlConfigurationService(File configurationXmlFile, XStream xStream) {
-        this(configurationXmlFile, null, xStream);
+        this(null, configurationXmlFile, null, xStream);
     }
 
     public XmlConfigurationService(File configurationXmlFile, String defaultConfigFileClasspathLocation, XStream xStream) {
+        this(null, configurationXmlFile, defaultConfigFileClasspathLocation, xStream);
+    }
+
+    public XmlConfigurationService(Class<C> configClass, File configurationXmlFile) {
+        this(configClass, configurationXmlFile, null, null);
+    }
+
+    public XmlConfigurationService(Class<C> configClass, File configurationXmlFile, String defaultConfigFileClasspathLocation) {
+        this(configClass, configurationXmlFile, defaultConfigFileClasspathLocation, null);
+    }
+
+    public XmlConfigurationService(Class<C> configClass, File configurationXmlFile, XStream xStream) {
+        this(configClass, configurationXmlFile, null, xStream);
+    }
+
+    public XmlConfigurationService(Class<C> configClass, File configurationXmlFile, String defaultConfigFileClasspathLocation, XStream xStream) {
         logger.debug("Initialising XmlConfigurationService.");
         this.configurationXmlFile = configurationXmlFile;
         this.defaultConfigFileClasspathLocation = defaultConfigFileClasspathLocation;
+        this.configClass = configClass;
 
         if (xStream == null) {
             this.xStream = new XStream(new DomDriver("UTF-8"));
@@ -65,9 +83,18 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
         InputStream defaultConfigIS = null;
         if (defaultConfigFileClasspathLocation != null){
             defaultConfigIS = XmlConfigurationService.class.getResourceAsStream(defaultConfigFileClasspathLocation);
+            if(defaultConfigIS == null) {
+                logger.warn("Could not locate default configuration file on the classpath: {}", defaultConfigFileClasspathLocation);
+            }
         }
         if(defaultConfigIS != null) {
             configuration = decodeXmlIS(defaultConfigIS, xStream);
+        } else if(configClass != null) {
+            try {
+                configuration = configClass.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                logger.warn("Could not instantiate an instance of the configuration bean.", e);
+            }
         }
 
         if (!configurationXmlFile.exists())
@@ -96,7 +123,9 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
 
     @SuppressWarnings("unchecked")
     private C decodeXmlIS(InputStream inputStream, XStream xstream, C root) {
-        return (C) xstream.fromXML(inputStream, root);
+        C configuration = (C) xstream.fromXML(inputStream, root);
+        checkType(configuration);
+        return configuration;
     }
 
 
@@ -107,6 +136,8 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
      */
     @Override
     public void persistConfiguration(C configuration) {
+        checkType(configuration);
+
         Lock writeLock = rwLock.writeLock();
 
         writeLock.lock();
@@ -127,6 +158,14 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
         }
 
     }
+
+    private void checkType(C configuration) {
+        if(configClass != null && !configuration.getClass().isInstance(configClass)) {
+            logger.error("Configuration class is not the expected type.");
+            throw new RuntimeException("Configuration class is not the expected type.");
+        }
+    }
+
 
 
 }

@@ -67,6 +67,9 @@ Dependency Injection, the library provides an implementation of the servlet cont
       class="com.alltheducks.configutils.service.CachingConfigurationService">
     <constructor-arg name="internalConfigurationService">
         <bean class="com.alltheducks.configutils.service.XmlConfigurationService">
+            <constructor-arg name="configClass">
+                <value type="java.lang.Class">edu.myuni.example.Configuration</value>
+            </constructor-arg>
             <constructor-arg name="configurationXmlFile" ref="configurationXMLFile" />
         </bean>
     </constructor-arg>
@@ -157,6 +160,9 @@ Now, when creating the XML configuration service, define where on the classpath 
       class="com.alltheducks.configutils.service.CachingConfigurationService">
     <constructor-arg name="internalConfigurationService">
         <bean class="com.alltheducks.configutils.service.XmlConfigurationService">
+            <constructor-arg name="configClass">
+                <value type="java.lang.Class">edu.myuni.example.Configuration</value>
+            </constructor-arg>
             <constructor-arg name="configurationXmlFile" ref="configurationXMLFile" />
             <constructor-arg name="defaultConfigFileClasspathLocation" value="/defaultConfig.xml" />
         </bean>
