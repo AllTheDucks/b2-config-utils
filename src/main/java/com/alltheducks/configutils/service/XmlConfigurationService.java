@@ -23,17 +23,27 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
     final Logger logger = LoggerFactory.getLogger(XmlConfigurationService.class);
 
     private File configurationXmlFile;
+    private String defaultConfigFileClasspathLocation;
     private XStream xStream;
 
     private ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     public XmlConfigurationService(File configurationXmlFile) {
-        this(configurationXmlFile, null);
+        this(configurationXmlFile, null, null);
+    }
+
+    public XmlConfigurationService(File configurationXmlFile, String defaultConfigFileClasspathLocation) {
+        this(configurationXmlFile, defaultConfigFileClasspathLocation, null);
     }
 
     public XmlConfigurationService(File configurationXmlFile, XStream xStream) {
+        this(configurationXmlFile, null, xStream);
+    }
+
+    public XmlConfigurationService(File configurationXmlFile, String defaultConfigFileClasspathLocation, XStream xStream) {
         logger.debug("Initialising XmlConfigurationService.");
         this.configurationXmlFile = configurationXmlFile;
+        this.defaultConfigFileClasspathLocation = defaultConfigFileClasspathLocation;
 
         if (xStream == null) {
             this.xStream = new XStream(new DomDriver("UTF-8"));
@@ -41,7 +51,6 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
         } else {
             this.xStream = xStream;
         }
-
     }
 
     /**
@@ -50,21 +59,28 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
      * @return The loaded configuration
      */
     @Override
-    @SuppressWarnings("unchecked")
     public C loadConfiguration() {
-        Lock readLock = rwLock.readLock();
         C configuration = null;
 
+        InputStream defaultConfigIS = null;
+        if (defaultConfigFileClasspathLocation != null){
+            defaultConfigIS = XmlConfigurationService.class.getResourceAsStream(defaultConfigFileClasspathLocation);
+        }
+        if(defaultConfigIS != null) {
+            configuration = decodeXmlIS(defaultConfigIS, xStream);
+        }
+
+        if (!configurationXmlFile.exists())
+        {
+            return configuration;
+        }
+
+        Lock readLock = rwLock.readLock();
         readLock.lock();
         try {
-            if (!configurationXmlFile.exists()) {
-                logger.warn("XML configuration file doesn't exist: {}", configurationXmlFile.getAbsolutePath());
-                return null;
-            }
-
             try (InputStream inputStream = new FileInputStream(configurationXmlFile)) {
                 logger.debug("Loading configuration from XML file");
-                configuration = decodeXmlIS(inputStream, xStream);
+                return decodeXmlIS(inputStream, xStream, configuration);
             } catch (IOException ex) {
                 logger.error("Unexpected IOException while loading XML", ex);
                 throw new RuntimeException(ex);
@@ -72,13 +88,15 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
         } finally {
             readLock.unlock();
         }
+    }
 
-        return configuration;
+    private C decodeXmlIS(InputStream inputStream, XStream xstream) {
+        return decodeXmlIS(inputStream, xstream, null);
     }
 
     @SuppressWarnings("unchecked")
-    private C decodeXmlIS(InputStream inputStream, XStream xstream) {
-        return (C) xstream.fromXML(inputStream);
+    private C decodeXmlIS(InputStream inputStream, XStream xstream, C root) {
+        return (C) xstream.fromXML(inputStream, root);
     }
 
 

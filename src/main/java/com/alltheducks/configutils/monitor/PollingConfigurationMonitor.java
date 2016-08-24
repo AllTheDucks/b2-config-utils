@@ -54,7 +54,7 @@ public class PollingConfigurationMonitor implements Runnable {
         logger.debug("Started polling for configuration file changes...");
         while (!Thread.currentThread().isInterrupted()) {
             logger.trace("Polling for changes to the config file.");
-            if (configurationFile.lastModified() > lastReload) {
+            if (configurationFile.lastModified() != lastReload) {
                 logger.debug("Configuration file modified.  Reloading.");
                 configurationService.reload();
                 lastReload = configurationFile.lastModified();

@@ -11,6 +11,9 @@
 // Apply the java plugin to add support for Java
 apply plugin: 'java'
 
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
 // In this section you declare where to find the dependencies of your project
 repositories {
     // Use 'maven central' for resolving your dependencies.
@@ -18,7 +21,7 @@ repositories {
     mavenCentral()
 }
 
-version="1.0.3"
+version="1.1.0"
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
