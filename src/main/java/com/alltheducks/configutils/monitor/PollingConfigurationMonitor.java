@@ -27,7 +27,7 @@ public class PollingConfigurationMonitor implements Runnable {
     private File configurationFile;
     private int pollFreqSeconds;
 
-    private long lastReload = 0;
+    private long lastReload = -1;
 
     public PollingConfigurationMonitor(int pollFreqSeconds, File configurationFile,
                                        ReloadableConfigurationService configurationService) {
