@@ -1,9 +1,11 @@
 package com.alltheducks.configutils;
 
+import com.alltheducks.configutils.monitor.ConfigurationChangeListener;
 import com.alltheducks.configutils.monitor.PollingConfigurationMonitor;
 import com.alltheducks.configutils.service.ReloadableConfigurationService;
 
 import java.io.File;
+import java.util.List;
 
 public class ConfigurationMonitorBuilder {
 
@@ -12,6 +14,7 @@ public class ConfigurationMonitorBuilder {
     private File configFile;
     private int pollingFreqSeconds;
     private ReloadableConfigurationService configService;
+    private List<ConfigurationChangeListener> configChangeListeners;
 
     public ConfigurationMonitorBuilder withConfigService(final ReloadableConfigurationService configService) {
         this.configService = configService;
@@ -28,6 +31,11 @@ public class ConfigurationMonitorBuilder {
         return this;
     }
 
+    public ConfigurationMonitorBuilder withConfigChangeListeners(final List<ConfigurationChangeListener> configChangeListeners) {
+        this.configChangeListeners = configChangeListeners;
+        return this;
+    }
+
     public Runnable build() {
         if (configService == null) {
             throw new RuntimeException("Configuration service not specified");
@@ -39,7 +47,7 @@ public class ConfigurationMonitorBuilder {
             pollingFreqSeconds = DEFUALT_POLLING_FREQ_SECONDS;
         }
 
-        return new PollingConfigurationMonitor(pollingFreqSeconds, configFile, configService);
+        return new PollingConfigurationMonitor(pollingFreqSeconds, configFile, configService, configChangeListeners);
     }
 
 }
