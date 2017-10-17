@@ -84,5 +84,7 @@ public class PollingConfigurationMonitor implements Runnable {
         listener.configurationChanged(config);
     }
 
-
+    public ReloadableConfigurationService getConfigurationService() {
+        return configurationService;
+    }
 }

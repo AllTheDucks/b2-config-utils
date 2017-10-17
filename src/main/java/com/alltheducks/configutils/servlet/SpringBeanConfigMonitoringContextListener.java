@@ -9,7 +9,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 import javax.servlet.ServletContext;
 
 /**
- *<p>
+ * <p>
  * This Class is responsible for Executing the Configuration Monitor process.
  * It gets the instance of the configurationMonitor from the spring context,
  * and expects it to have the ID <em>configurationMonitor</em> or an alternative
@@ -21,9 +21,9 @@ import javax.servlet.ServletContext;
  *  <listener-class>
  *     com.alltheducks.configutils.servlet.SpringBeanConfigMonitoringContextListener
  *  </listener-class>
- *</listener>}
- *</pre>
- *
+ * </listener>}
+ * </pre>
+ * <p>
  * <p>If you want to use a custom name for your spring bean, e.g. <em>myBeanId</em>,
  * your web.xml would look like this:</p>
  * <pre>
@@ -37,8 +37,8 @@ import javax.servlet.ServletContext;
  *     com.alltheducks.configutils.servlet.SpringBeanConfigMonitoringContextListener
  *  </listener-class>
  *  <init-param></init-param>
- *</listener>}
- *</pre>
+ * </listener>}
+ * </pre>
  * <p>If you are using the config manager "out of the box", your spring xml
  * configuration will look like the following.  This framework does not currently
  * support Spring AutoWiring.</p>
@@ -71,9 +71,8 @@ import javax.servlet.ServletContext;
  *   <constructor-arg name="pollFreq" value="10"/>
  * </bean>}
  * </pre>
- *
+ * <p>
  * <p>Copyright All the Ducks Pty Ltd. 2014.</p>
- *
  */
 public class SpringBeanConfigMonitoringContextListener extends ConfigMonitoringContextListener {
     final Logger logger = LoggerFactory.getLogger(SpringBeanConfigMonitoringContextListener.class);
@@ -85,13 +84,13 @@ public class SpringBeanConfigMonitoringContextListener extends ConfigMonitoringC
     public Runnable getConfigurationMonitor(ServletContext servletContext) throws ConfigurationMonitorInitialisationException {
         String beanName = servletContext.getInitParameter(BEAN_PARAM_NAME);
 
-        if(beanName == null) {
+        if (beanName == null) {
             beanName = BEAN_NAME_DEFAULT;
         }
 
         logger.debug("Creating SpringBeanConfigMonitoringContextListener with ConfigurationMonitor bean: {}", beanName);
         final WebApplicationContext springContext = WebApplicationContextUtils.getWebApplicationContext(servletContext);
-        return (Runnable)springContext.getBean(beanName);
+        return (Runnable) springContext.getBean(beanName);
     }
 
 }

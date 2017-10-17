@@ -5,13 +5,9 @@ import com.thoughtworks.xstream.io.xml.DomDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * Loads and persists the configuration from and into an XML file in Blackboard's shared content.
@@ -19,15 +15,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * <p/>
  * <p>Copyright All the Ducks Pty Ltd. 2014.</p>
  */
-public class XmlConfigurationService<C> implements ConfigurationService<C> {
+public class XmlConfigurationService<C> extends FileConfigurationService<C> {
     final Logger logger = LoggerFactory.getLogger(XmlConfigurationService.class);
 
-    private File configurationXmlFile;
-    private String defaultConfigFileClasspathLocation;
     private XStream xStream;
-    private Class<C> configClass;
-
-    private ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     public XmlConfigurationService(File configurationXmlFile) {
         this(null, configurationXmlFile, null, null);
@@ -58,10 +49,8 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
     }
 
     public XmlConfigurationService(Class<C> configClass, File configurationXmlFile, String defaultConfigFileClasspathLocation, XStream xStream) {
+        super(configClass, configurationXmlFile, defaultConfigFileClasspathLocation);
         logger.debug("Initialising XmlConfigurationService.");
-        this.configurationXmlFile = configurationXmlFile;
-        this.defaultConfigFileClasspathLocation = defaultConfigFileClasspathLocation;
-        this.configClass = configClass;
 
         if (xStream == null) {
             this.xStream = new XStream(new DomDriver("UTF-8"));
@@ -71,101 +60,22 @@ public class XmlConfigurationService<C> implements ConfigurationService<C> {
         }
     }
 
-    /**
-     * Loads the configuration from the central configuration file on Blackboard's shared content.
-     *
-     * @return The loaded configuration
-     */
     @Override
-    public C loadConfiguration() {
-        C configuration = null;
-
-        InputStream defaultConfigIS = null;
-        if (defaultConfigFileClasspathLocation != null){
-            defaultConfigIS = XmlConfigurationService.class.getResourceAsStream(defaultConfigFileClasspathLocation);
-            if(defaultConfigIS == null) {
-                logger.warn("Could not locate default configuration file on the classpath: {}", defaultConfigFileClasspathLocation);
-            }
-        }
-        if(defaultConfigIS != null) {
-            configuration = decodeXmlIS(defaultConfigIS, xStream);
-        } else if(configClass != null) {
-            try {
-                configuration = configClass.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
-                logger.warn("Could not instantiate an instance of the configuration bean.", e);
-            }
-        }
-
-        if (!configurationXmlFile.exists())
-        {
-            return configuration;
-        }
-
-        Lock readLock = rwLock.readLock();
-        readLock.lock();
-        try {
-            try (InputStream inputStream = new FileInputStream(configurationXmlFile)) {
-                logger.debug("Loading configuration from XML file");
-                return decodeXmlIS(inputStream, xStream, configuration);
-            } catch (IOException ex) {
-                logger.error("Unexpected IOException while loading XML", ex);
-                throw new RuntimeException(ex);
-            }
-        } finally {
-            readLock.unlock();
-        }
+    C decode(InputStream inputStream) {
+        return decode(inputStream, null);
     }
 
-    private C decodeXmlIS(InputStream inputStream, XStream xstream) {
-        return decodeXmlIS(inputStream, xstream, null);
-    }
-
+    @Override
     @SuppressWarnings("unchecked")
-    private C decodeXmlIS(InputStream inputStream, XStream xstream, C root) {
-        Object configuration = xstream.fromXML(inputStream, root);
+    C decode(InputStream inputStream, C defaultConfig) {
+        Object configuration = xStream.fromXML(inputStream, defaultConfig);
         checkType(configuration);
-        return (C)configuration;
+        return (C) configuration;
     }
 
-
-    /**
-     * Persists the configuration into the central configuration file on Blackboard's shared content.
-     *
-     * @param configuration The configuration to be persisted.
-     */
     @Override
-    public void persistConfiguration(C configuration) {
-        checkType(configuration);
-
-        Lock writeLock = rwLock.writeLock();
-
-        writeLock.lock();
-        try (FileChannel fileChannel = new RandomAccessFile(configurationXmlFile, "rw").getChannel()) {
-            FileLock fileLock = fileChannel.lock();
-            fileChannel.truncate(0);
-            try (OutputStream outputStream = Channels.newOutputStream(fileChannel)) {
-                logger.debug("Persisting configuration to XML file");
-                xStream.toXML(configuration, outputStream);
-                fileLock.release();
-            }
-
-        } catch (IOException ex) {
-            logger.error("Unexpected IOException while persisting XML", ex);
-            throw new RuntimeException(String.format("Failed to open configuration file for writing: %s", configurationXmlFile.getAbsolutePath()), ex);
-        } finally {
-            writeLock.unlock();
-        }
-
+    void encode(C configuration, OutputStream outputStream) {
+        xStream.toXML(configuration, outputStream);
     }
-
-    private void checkType(Object configuration) {
-        if(configClass != null && !configClass.isInstance(configuration)) {
-            logger.error("Configuration class is not the expected type.");
-            throw new RuntimeException("Configuration class is not the expected type.");
-        }
-    }
-
-
 
 }

@@ -1,18 +1,16 @@
 package com.alltheducks.configutils.servlet;
 
 import com.alltheducks.configutils.exception.ConfigurationMonitorInitialisationException;
+import com.alltheducks.configutils.monitor.ConfigMonitorRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
- *<p>
+ * <p>
  * This is the base class that all ConfigMonitoringContextListener implementations
  * extend. Responsible for Executing the Configuration Monitor process.<br>
  * Override the {@link #getConfigurationMonitor} method to return the
@@ -24,45 +22,26 @@ import java.util.concurrent.TimeUnit;
  *  <listener-class>
  *     my.package.MyConfigMonitoringContextListener
  *  </listener-class>
- *</listener>}
- *</pre>
- *
+ * </listener>}
+ * </pre>
+ * <p>
  * <p>Copyright All the Ducks Pty Ltd. 2014.</p>
  */
 public abstract class ConfigMonitoringContextListener implements ServletContextListener {
     final Logger logger = LoggerFactory.getLogger(ConfigMonitoringContextListener.class);
 
-    ExecutorService executorService;
-
-    public static final int TERMINATION_TIMEOUT_SECONDS = 5;
+    private ConfigMonitorRunner configMonitorRunner;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        logger.info("Initialising configuration monitor.");
-
-        Runnable configurationMonitor = getConfigurationMonitor(sce.getServletContext());
-
-        executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(configurationMonitor);
+        configMonitorRunner = new ConfigMonitorRunner(getConfigurationMonitor(sce.getServletContext()));
+        configMonitorRunner.start();
     }
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        logger.info("Destroying configuration monitor.");
-
-        if(executorService != null) {
-            executorService.shutdownNow();
-
-            boolean terminated;
-            try {
-                terminated = executorService.awaitTermination(TERMINATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                throw new ConfigurationMonitorInitialisationException("Interruption whilst terminating configuration monitor");
-            }
-
-            if (!terminated) {
-                throw new ConfigurationMonitorInitialisationException(String.format("Configuration monitor did not terminate within the timeout (%s seconds).", TERMINATION_TIMEOUT_SECONDS));
-            }
+        if (configMonitorRunner != null) {
+            configMonitorRunner.stop();
         }
     }
 

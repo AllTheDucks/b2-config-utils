@@ -7,7 +7,6 @@
  * user guide available at http://gradle.org/docs/1.12/userguide/tutorial_java_projects.html
  */
 
-
 // Apply the java plugin to add support for Java
 apply plugin: 'java'
 
@@ -21,7 +20,7 @@ repositories {
     mavenCentral()
 }
 
-version="1.1.1"
+version="1.2.0"
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
@@ -32,6 +31,10 @@ dependencies {
     compile 'javax.servlet:servlet-api:2.5'
     compile 'org.springframework:spring-beans:4.1.2.RELEASE'
     compile 'org.springframework:spring-web:4.1.2.RELEASE'
+    compile 'org.glassfish.jersey.core:jersey-server:2.22.4'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.2'
+
+
 
 
 
