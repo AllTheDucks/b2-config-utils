@@ -20,7 +20,7 @@ repositories {
     mavenCentral()
 }
 
-version="1.2.1"
+version="1.2.2"
 
 // In this section you declare the dependencies for your production and test code
 dependencies {

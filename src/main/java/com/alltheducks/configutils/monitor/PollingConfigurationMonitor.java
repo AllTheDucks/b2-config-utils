@@ -18,25 +18,25 @@ import java.util.List;
  * @see com.alltheducks.configutils.monitor.ConfigurationChangeListener
  * <p>Copyright All the Ducks Pty Ltd. 2014.</p>
  */
-public class PollingConfigurationMonitor implements Runnable {
+public class PollingConfigurationMonitor<T> implements Runnable {
 
     final Logger logger = LoggerFactory.getLogger(PollingConfigurationMonitor.class);
 
-    private final ReloadableConfigurationService configurationService;
-    private final List<ConfigurationChangeListener> listeners;
+    private final ReloadableConfigurationService<T> configurationService;
+    private final List<? extends ConfigurationChangeListener<T>> listeners;
     private File configurationFile;
     private int pollFreqSeconds;
 
     private long lastReload = -1;
 
     public PollingConfigurationMonitor(int pollFreqSeconds, File configurationFile,
-                                       ReloadableConfigurationService configurationService) {
+                                       ReloadableConfigurationService<T> configurationService) {
         this(pollFreqSeconds, configurationFile, configurationService, null);
     }
 
     public PollingConfigurationMonitor(int pollFreqSeconds, File configurationFile,
-                                       ReloadableConfigurationService configurationService,
-                                       List<ConfigurationChangeListener> listeners) {
+                                       ReloadableConfigurationService<T> configurationService,
+                                       List<? extends ConfigurationChangeListener<T>> listeners) {
         logger.debug("Initialising PollingConfigurationMonitor (Polling freq: {}, Config file: {}, Config service: {}, Listeners: {})",
                 pollFreqSeconds,
                 (configurationFile == null ? "null" : configurationFile.getName()),
@@ -59,10 +59,10 @@ public class PollingConfigurationMonitor implements Runnable {
                 configurationService.reload();
                 lastReload = configurationFile.lastModified();
 
-                Object config = configurationService.loadConfiguration();
+                T config = configurationService.loadConfiguration();
                 if (listeners != null) {
                     logger.debug("PollingConfigurationMonitor has {} listeners. Notifying the listeners now.", listeners.size());
-                    for (ConfigurationChangeListener listener : listeners) {
+                    for (ConfigurationChangeListener<T> listener : listeners) {
                         callListener(config, listener);
                     }
                 }
@@ -79,7 +79,7 @@ public class PollingConfigurationMonitor implements Runnable {
     }
 
     @SuppressWarnings("unchecked")
-    private void callListener(Object config, ConfigurationChangeListener listener) {
+    private void callListener(T config, ConfigurationChangeListener<T> listener) {
         logger.debug("Calling configurationChanged on listener: {}", listener.getClass().getName());
         listener.configurationChanged(config);
     }

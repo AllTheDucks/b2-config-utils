@@ -7,31 +7,31 @@ import com.alltheducks.configutils.service.ReloadableConfigurationService;
 import java.io.File;
 import java.util.List;
 
-public class ConfigurationMonitorBuilder {
+public class ConfigurationMonitorBuilder<T> {
 
     private static final int DEFUALT_POLLING_FREQ_SECONDS = 10;
 
     private File configFile;
     private int pollingFreqSeconds;
-    private ReloadableConfigurationService configService;
-    private List<ConfigurationChangeListener> configChangeListeners;
+    private ReloadableConfigurationService<T> configService;
+    private List<? extends ConfigurationChangeListener<T>> configChangeListeners;
 
-    public ConfigurationMonitorBuilder withConfigService(final ReloadableConfigurationService configService) {
+    public ConfigurationMonitorBuilder<T> withConfigService(final ReloadableConfigurationService<T> configService) {
         this.configService = configService;
         return this;
     }
 
-    public ConfigurationMonitorBuilder withConfigFile(final File configFile) {
+    public ConfigurationMonitorBuilder<T> withConfigFile(final File configFile) {
         this.configFile = configFile;
         return this;
     }
 
-    public ConfigurationMonitorBuilder withPollingFreqSeconds(final int pollingFreqSeconds) {
+    public ConfigurationMonitorBuilder<T> withPollingFreqSeconds(final int pollingFreqSeconds) {
         this.pollingFreqSeconds = pollingFreqSeconds;
         return this;
     }
 
-    public ConfigurationMonitorBuilder withConfigChangeListeners(final List<ConfigurationChangeListener> configChangeListeners) {
+    public ConfigurationMonitorBuilder<T> withConfigChangeListeners(final List<? extends ConfigurationChangeListener<T>> configChangeListeners) {
         this.configChangeListeners = configChangeListeners;
         return this;
     }
@@ -47,7 +47,7 @@ public class ConfigurationMonitorBuilder {
             pollingFreqSeconds = DEFUALT_POLLING_FREQ_SECONDS;
         }
 
-        return new PollingConfigurationMonitor(pollingFreqSeconds, configFile, configService, configChangeListeners);
+        return new PollingConfigurationMonitor<T>(pollingFreqSeconds, configFile, configService, configChangeListeners);
     }
 
 }
