@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -13,16 +14,16 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 public abstract class FileConfigurationService<C> implements ConfigurationService<C> {
-    final Logger logger = LoggerFactory.getLogger(FileConfigurationService.class);
+    private final Logger logger = LoggerFactory.getLogger(FileConfigurationService.class);
 
-    private File configurationFile;
-    private String defaultConfigFileClasspathLocation;
-    protected Class<C> configClass;
+    private final File configurationFile;
+    private final String defaultConfigFileClasspathLocation;
+    protected final Class<C> configClass;
 
-    private ReadWriteLock rwLock = new ReentrantReadWriteLock();
+    private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
-    public FileConfigurationService(Class<C> configClass, File configurationFile, String defaultConfigFileClasspathLocation) {
-        logger.debug("Initialising XmlConfigurationService.");
+    public FileConfigurationService(final Class<C> configClass, final File configurationFile, final String defaultConfigFileClasspathLocation) {
+        this.logger.debug("Initialising XmlConfigurationService.");
         this.configurationFile = configurationFile;
         this.defaultConfigFileClasspathLocation = defaultConfigFileClasspathLocation;
         this.configClass = configClass;
@@ -35,22 +36,24 @@ public abstract class FileConfigurationService<C> implements ConfigurationServic
      */
     @Override
     public C loadConfiguration() {
-        C configuration = null;
-
-        InputStream defaultConfigIS = null;
+        final InputStream defaultConfigIS;
         if (defaultConfigFileClasspathLocation != null) {
             defaultConfigIS = FileConfigurationService.class.getResourceAsStream(defaultConfigFileClasspathLocation);
             if (defaultConfigIS == null) {
-                logger.warn("Could not locate default configuration file on the classpath: {}", defaultConfigFileClasspathLocation);
+                this.logger.warn("Could not locate default configuration file on the classpath: {}", defaultConfigFileClasspathLocation);
             }
+        } else {
+            defaultConfigIS = null;
         }
+
+        C configuration = null;
         if (defaultConfigIS != null) {
             configuration = decode(defaultConfigIS);
         } else if (configClass != null) {
             try {
-                configuration = configClass.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
-                logger.warn("Could not instantiate an instance of the configuration bean.", e);
+                configuration = configClass.getDeclaredConstructor().newInstance();
+            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+                this.logger.warn("Could not instantiate an instance of the configuration bean.", e);
             }
         }
 
@@ -58,14 +61,14 @@ public abstract class FileConfigurationService<C> implements ConfigurationServic
             return configuration;
         }
 
-        Lock readLock = rwLock.readLock();
+        final Lock readLock = rwLock.readLock();
         readLock.lock();
         try {
-            try (InputStream inputStream = new FileInputStream(configurationFile)) {
-                logger.debug("Loading configuration from XML file");
+            try (final InputStream inputStream = new FileInputStream(configurationFile)) {
+                this.logger.debug("Loading configuration from XML file");
                 return decode(inputStream, configuration);
             } catch (IOException ex) {
-                logger.error("Unexpected IOException while loading XML", ex);
+                this.logger.error("Unexpected IOException while loading XML", ex);
                 throw new RuntimeException(ex);
             }
         } finally {
@@ -79,19 +82,18 @@ public abstract class FileConfigurationService<C> implements ConfigurationServic
      * @param configuration The configuration to be persisted.
      */
     @Override
-    public void persistConfiguration(C configuration) {
-        checkType(configuration);
+    public void persistConfiguration(final C configuration) {
+        this.checkType(configuration);
 
-        Lock writeLock = rwLock.writeLock();
+        final Lock writeLock = rwLock.writeLock();
 
         writeLock.lock();
-        try (FileChannel fileChannel = new RandomAccessFile(configurationFile, "rw").getChannel()) {
-            FileLock fileLock = fileChannel.lock();
-            try (OutputStream outputStream = Channels.newOutputStream(fileChannel)) {
+        try (final FileChannel fileChannel = new RandomAccessFile(configurationFile, "rw").getChannel()) {
+            final FileLock fileLock = fileChannel.lock();
+            try (final OutputStream outputStream = Channels.newOutputStream(fileChannel)) {
                 fileChannel.truncate(0);
-                logger.debug("Persisting configuration to XML file");
-                encode(configuration, outputStream);
-
+                this.logger.debug("Persisting configuration to XML file");
+                this.encode(configuration, outputStream);
             } finally {
                 if (fileLock.isValid()) {
                     fileLock.release();
@@ -99,7 +101,7 @@ public abstract class FileConfigurationService<C> implements ConfigurationServic
             }
 
         } catch (IOException ex) {
-            logger.error("Unexpected IOException while persisting XML", ex);
+            this.logger.error("Unexpected IOException while persisting XML", ex);
             throw new RuntimeException(String.format("Failed to open configuration file for writing: %s", configurationFile.getAbsolutePath()), ex);
         } finally {
             writeLock.unlock();
@@ -107,9 +109,9 @@ public abstract class FileConfigurationService<C> implements ConfigurationServic
 
     }
 
-    protected void checkType(Object configuration) {
+    protected void checkType(final Object configuration) {
         if (configClass != null && !configClass.isInstance(configuration)) {
-            logger.error("Configuration class is not the expected type.");
+            this.logger.error("Configuration class is not the expected type.");
             throw new RuntimeException("Configuration class is not the expected type.");
         }
     }

@@ -16,66 +16,89 @@ import java.io.OutputStream;
  * <p>Copyright All the Ducks Pty Ltd. 2014.</p>
  */
 public class XmlConfigurationService<C> extends FileConfigurationService<C> {
-    final Logger logger = LoggerFactory.getLogger(XmlConfigurationService.class);
 
-    private XStream xStream;
+    private final Logger logger = LoggerFactory.getLogger(XmlConfigurationService.class);
+    private final XStream xStream;
 
-    public XmlConfigurationService(File configurationXmlFile) {
+    public XmlConfigurationService(final File configurationXmlFile) {
         this(null, configurationXmlFile, null, null);
     }
 
-    public XmlConfigurationService(File configurationXmlFile, String defaultConfigFileClasspathLocation) {
+    public XmlConfigurationService(final File configurationXmlFile,
+                                   final String defaultConfigFileClasspathLocation) {
         this(null, configurationXmlFile, defaultConfigFileClasspathLocation, null);
     }
 
-    public XmlConfigurationService(File configurationXmlFile, XStream xStream) {
+    public XmlConfigurationService(final File configurationXmlFile,
+                                   final XStream xStream) {
         this(null, configurationXmlFile, null, xStream);
     }
 
-    public XmlConfigurationService(File configurationXmlFile, String defaultConfigFileClasspathLocation, XStream xStream) {
+    public XmlConfigurationService(final File configurationXmlFile,
+                                   final String defaultConfigFileClasspathLocation,
+                                   final XStream xStream) {
         this(null, configurationXmlFile, defaultConfigFileClasspathLocation, xStream);
     }
 
-    public XmlConfigurationService(Class<C> configClass, File configurationXmlFile) {
+    public XmlConfigurationService(final Class<C> configClass,
+                                   final File configurationXmlFile) {
         this(configClass, configurationXmlFile, null, null);
     }
 
-    public XmlConfigurationService(Class<C> configClass, File configurationXmlFile, String defaultConfigFileClasspathLocation) {
+    public XmlConfigurationService(final Class<C> configClass,
+                                   final File configurationXmlFile,
+                                   final String defaultConfigFileClasspathLocation) {
         this(configClass, configurationXmlFile, defaultConfigFileClasspathLocation, null);
     }
 
-    public XmlConfigurationService(Class<C> configClass, File configurationXmlFile, XStream xStream) {
+    public XmlConfigurationService(final Class<C> configClass,
+                                   final File configurationXmlFile,
+                                   final XStream xStream) {
         this(configClass, configurationXmlFile, null, xStream);
     }
 
-    public XmlConfigurationService(Class<C> configClass, File configurationXmlFile, String defaultConfigFileClasspathLocation, XStream xStream) {
+    public XmlConfigurationService(final Class<C> configClass,
+                                   final File configurationXmlFile,
+                                   final String defaultConfigFileClasspathLocation,
+                                   final XStream xStream) {
         super(configClass, configurationXmlFile, defaultConfigFileClasspathLocation);
         logger.debug("Initialising XmlConfigurationService.");
 
         if (xStream == null) {
-            this.xStream = new XStream(new DomDriver("UTF-8"));
-            this.xStream.ignoreUnknownElements();
+            this.xStream = buildDefaultXStream(configClass);
         } else {
             this.xStream = xStream;
         }
     }
 
     @Override
-    C decode(InputStream inputStream) {
+    C decode(final InputStream inputStream) {
         return decode(inputStream, null);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    C decode(InputStream inputStream, C defaultConfig) {
-        Object configuration = xStream.fromXML(inputStream, defaultConfig);
-        checkType(configuration);
+    C decode(final InputStream inputStream, final C defaultConfig) {
+        final Object configuration = xStream.fromXML(inputStream, defaultConfig);
+        this.checkType(configuration);
         return (C) configuration;
     }
 
     @Override
-    void encode(C configuration, OutputStream outputStream) {
-        xStream.toXML(configuration, outputStream);
+    void encode(final C configuration, final OutputStream outputStream) {
+        this.xStream.toXML(configuration, outputStream);
+    }
+
+    private static <C> XStream buildDefaultXStream(final Class<C> configClass) {
+        final XStream newXStream = new XStream(new DomDriver("UTF-8"));
+        newXStream.ignoreUnknownElements();
+
+        if(configClass != null) {
+            XStream.setupDefaultSecurity(newXStream);
+            newXStream.allowTypes(new Class[]{configClass});
+        }
+        
+        return newXStream;
     }
 
 }
